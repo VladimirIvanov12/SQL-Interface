@@ -1,0 +1,138 @@
+<html>
+<head>
+	<title>SQL UI</title>
+</head>
+<body>
+
+<csp:object name='objForm' classname='Project.Controller' OBJID='#(%request.Get("OBJID"))#'>
+
+
+	<form>
+		Fields list*:
+		<br>
+		<input type="text" id="fields">
+		<br>
+		Table*:
+		<br>
+		<input type="text" id="table">
+		<br>
+		Where clause*:
+		<br>
+		<input type="text" id="where">
+		<br>
+		Order by:
+		<br>
+		<input type="text" id="order">
+		<br><br>
+		<input type="submit" value="Submit" onclick="formAndValidateQuery()">
+	</form>
+	
+	<csp:SQLQUERY NAME='query' P1='A'>
+	SELECT ID,Request,Username FROM Project.Query WHERE Username = $Username
+	</csp:SQLQUERY>
+	<table id="data">
+		<csp:WHILE CONDITION="query.Next()">
+			<tr>
+				<td class="RowId">
+	    			#(query.Get("ID"))#
+	    		</td>
+				<td>
+	    			#(query.Get("Request"))#
+	    		</td>
+	    		<td>
+	    			#(query.Get("Username"))#
+	    		</td>
+	    	</tr>
+		</csp:WHILE>
+	</table>
+	
+	
+	<form id="edit">
+	Update existing query form:
+		Query Id:
+		<br>
+		<select id="RowIdSelector">
+		</select>
+		<br>
+		Query body:
+		<br>
+		<input type="text" id="updQBody">
+		<br>
+		<input type="button" value="Edit" onClick=editQuery()>
+	</form>
+</body>
+
+<script>
+	var tblBodyObj = document.getElementById("data").tBodies[0];
+	var idList = [];
+	
+	if(tblBodyObj != undefined) {
+		for (var i=0; i<tblBodyObj.rows.length; i++) {
+			var newCell = tblBodyObj.rows[i].insertCell(-1);
+			var id = parseInt(tblBodyObj.rows[i].childNodes[1].textContent);
+			newCell.innerHTML = '<input type="button" value="Delete" onClick=deleteQuery(' + id + ')>'
+		}
+	}
+	
+	var allIdTds = document.getElementsByClassName("RowId");
+	for (var i=0; i<allIdTds.length; i++) {
+		var val = parseInt(allIdTds[i].innerText);
+		if(Number.isInteger(val)) {
+			idList.push(val);
+		}
+	}
+	
+	console.log(idList.length);
+	if(idList.length == 0) {
+		document.getElementById("edit").style.display = "none";
+	}
+	
+	var selector = document.getElementById("RowIdSelector");
+	for(var i=0; i<idList.length; i++) {	
+    	var option = document.createElement("option");
+    	option.text = idList[i];
+    	option.value = idList[i];
+    	selector.add(option);
+	}
+	
+	function formAndValidateQuery() {
+		var fields = document.getElementById("fields").value;
+		var f = document.getElementById("fields");
+		var table = document.getElementById("table").value;
+		var where = document.getElementById("where").value;
+		var order = document.getElementById("order").value;
+
+		if(fields == "" || table =="" || where =="") {
+			alert("Populate all mandatory fields");
+		} else {
+			var query = "SELECT " + fields + " FROM " + table + " WHERE " + where;
+
+			if(order != "") {
+				query += " ORDER BY " + order;
+			}
+			addQuery(query);
+		}
+		
+		
+	}
+	
+	function addQuery(q) {
+		#server(Project.Controller.addQueryToHistory(q))#;
+	}
+	
+	function deleteQuery(id) {
+		console.log(id);
+		#server(Project.Controller.deleteQuery(id))#;
+		location.reload();
+	}
+	
+	function editQuery() {
+    	var s = document.getElementById("RowIdSelector");
+		var id = s.options[s.selectedIndex].text;
+		var text = document.getElementById("updQBody").value;
+		#server(Project.Controller.updateQuery(id, text))#;
+		location.reload();
+	}
+		
+</script>	
+</html>
