@@ -16,8 +16,8 @@ Package structure should be the following:
 
 Classes<br>
  -Project<br>
- --Controller<br>
- --Query<br>
+ --Controller.cls<br>
+ --Query.cls<br>
 CSP Files<br>
  -ui.csp<br>
 
