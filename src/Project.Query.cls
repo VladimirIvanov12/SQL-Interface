@@ -5,6 +5,8 @@ Property Request As %String(MAXLEN = 256) [ Required ];
 
 Property Username As %String(MAXLEN = 256);
 
+Property IsArchived As %Boolean;
+
 Storage Default
 {
 <Data name="QueryDefaultData">
@@ -16,6 +18,9 @@ Storage Default
 </Value>
 <Value name="3">
 <Value>Username</Value>
+</Value>
+<Value name="4">
+<Value>IsArchived</Value>
 </Value>
 </Data>
 <DataLocation>^Project.QueryD</DataLocation>

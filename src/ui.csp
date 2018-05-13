@@ -1,36 +1,96 @@
 <html>
 <head>
 	<title>SQL UI</title>
+	<link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.1.1/css/bootstrap.min.css" integrity="sha384-WskhaSGFgHYWDcbwN70/dfYBj47jz9qbsMId/iRN3ewGhXQFZCSftd1LZCfmhktB" crossorigin="anonymous">
+	<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/octicons/4.4.0/font/octicons.css">
+	
+	<style>
+       .mainLink, .archiveLink {
+       		cursor: pointer;
+       }
+       .pad {
+       		min-width: 100px;
+       }
+       .btn-lg, #hlabel{
+           margin-left: 10px;
+       }
+       h3 {
+	       margin: 10px;
+       }
+       .dropdown-divider {
+       	   margin: 30px 0 30px 0;
+       }
+       .invalid-feedback {
+           margin-left: 125px;
+       }
+   </style>
 </head>
 <body>
 
+<nav class="navbar navbar-expand-lg navbar-dark bg-dark">
+  <a class="navbar-brand" href=""><b>SQL Interface</b></a>
+    <ul class="navbar-nav mr-auto">
+      <li class="nav-item active mainLink">
+        <a class="nav-link" onClick=hideArchive()> Main <span class="sr-only">(current)</span></a>
+      </li>
+      <li class="nav-item archiveLink">
+        <a class="nav-link" onClick=hideMain()> Archive </a>
+      </li>
+    </ul>
+</nav>
+
 <csp:object name='objForm' classname='Project.Controller' OBJID='#(%request.Get("OBJID"))#'>
 
-
-	<form>
-		Fields list*:
-		<br>
-		<input type="text" id="fields">
-		<br>
-		Table*:
-		<br>
-		<input type="text" id="table">
-		<br>
-		Where clause*:
-		<br>
-		<input type="text" id="where">
-		<br>
-		Order by:
-		<br>
-		<input type="text" id="order">
-		<br><br>
-		<input type="submit" value="Submit" onclick="formAndValidateQuery()">
+<div id="main">
+	<h3>Populate fields:</h3>
+	<form class="needs-validation" novalidate>
+		<div class="input-group mb-3">
+  			<div class="input-group-prepend">
+    			<span class="input-group-text" id="basic-addon3"><div class="pad">SELECT</div></span>
+  			</div>
+  			<input placeholder="Name, Email, etc" type="text" class="form-control" id="fields" aria-describedby="basic-addon3" required>
+  			<div class="invalid-feedback">
+          		Please enter some fields
+        	</div>
+		</div>
+		<div class="input-group mb-3">
+  			<div class="input-group-prepend">
+    			<span class="input-group-text" id="basic-addon3"><div class="pad">FROM</div></span>
+  			</div>
+  			<input placeholder="Contact"  type="text" class="form-control" id="table" aria-describedby="basic-addon3" required>
+			<div class="invalid-feedback">
+          		Please enter table name
+        	</div>
+		</div>
+		<div class="input-group mb-3">
+  			<div class="input-group-prepend">
+    			<span class="input-group-text" id="basic-addon3"><div class="pad">WHERE</div></span>
+  			</div>
+  			<input placeholder="Email LIKE '%@gmail.com'" type="text" class="form-control" id="where" aria-describedby="basic-addon3">
+		</div>
+		<div class="input-group mb-3">
+  			<div class="input-group-prepend">
+    			<span class="input-group-text" id="basic-addon3"><div class="pad">ORDER BY</div></span>
+  			</div>
+  			<input placeholder="Name" type="text" class="form-control" id="order" aria-describedby="basic-addon3">
+		</div>
+		<button class="btn btn-primary btn-lg" onclick="formAndValidateQuery()" type="submit">Submit query</button>
 	</form>
 	
+	<div class="dropdown-divider"></div>
+	
 	<csp:SQLQUERY NAME='query' P1='A'>
-	SELECT ID,Request,Username FROM Project.Query WHERE Username = $Username
+	SELECT ID,Request,Username,IsArchived FROM Project.Query WHERE Username = $Username AND IsArchived != 1
 	</csp:SQLQUERY>
-	<table id="data">
+	<h3>Your queries:</h3>
+	<table class="table" id="data">
+		<thead class="thead-light">
+    		<tr>
+      			<th scope="col">Id</th>
+      			<th scope="col">Query</th>
+      			<th scope="col">Actions</th>
+    		</tr>
+  		</thead>
 		<csp:WHILE CONDITION="query.Next()">
 			<tr>
 				<td class="RowId">
@@ -39,38 +99,80 @@
 				<td>
 	    			#(query.Get("Request"))#
 	    		</td>
-	    		<td>
-	    			#(query.Get("Username"))#
-	    		</td>
 	    	</tr>
 		</csp:WHILE>
 	</table>
 	
+	<div class="dropdown-divider"></div>
 	
 	<form id="edit">
-	Update existing query form:
-		Query Id:
-		<br>
-		<select id="RowIdSelector">
-		</select>
-		<br>
-		Query body:
-		<br>
-		<input type="text" id="updQBody">
-		<br>
-		<input type="button" value="Edit" onClick=editQuery()>
+	<h3>Update existing query</h3>		
+		<div class="form-row">
+			<div class="form-group col-md-2">
+      			<label id="hlabel">Id</label>
+      			<select id="RowIdSelector" class="form-control">
+      			</select>
+    		</div>
+    		<div class="form-group col-md-10">
+      			<label id="hlabel">Query</label>
+      			<input id="updQBody" type="text" class="form-control">
+    		</div>
+  		</div>
+		
+		<button type="button" class="btn btn-primary btn-lg" onClick=editQuery()>Confirm</button>
 	</form>
-</body>
+</div>
+<div id="archive">
+<csp:SQLQUERY NAME='query' P1='A'>
+	SELECT ID,Request,Username,IsArchived FROM Project.Query WHERE Username = $Username AND IsArchived = 1
+	</csp:SQLQUERY>
+	<h3>Your archived queries:</h3>
+	<table class="table" id="archData">
+		<thead class="thead-light">
+    		<tr>
+      			<th scope="col">Id</th>
+      			<th scope="col">Query</th>
+      			<th scope="col">Actions</th>
+    		</tr>
+  		</thead>
+		<csp:WHILE CONDITION="query.Next()">
+			<tr>
+				<td class="archRowId">
+	    			#(query.Get("ID"))#
+	    		</td>
+				<td>
+	    			#(query.Get("Request"))#
+	    		</td>
+	    	</tr>
+		</csp:WHILE>
+	</table>
+	</div>
 
 <script>
 	var tblBodyObj = document.getElementById("data").tBodies[0];
+	var archTblBodyObj = document.getElementById("archData").tBodies[0];
 	var idList = [];
+	var mainLink = document.getElementsByClassName("mainLink")[0].classList;
+	
+	if(mainLink.contains("active")) {
+		document.getElementById("archive").style.display = "none";
+	}
 	
 	if(tblBodyObj != undefined) {
 		for (var i=0; i<tblBodyObj.rows.length; i++) {
 			var newCell = tblBodyObj.rows[i].insertCell(-1);
 			var id = parseInt(tblBodyObj.rows[i].childNodes[1].textContent);
-			newCell.innerHTML = '<input type="button" value="Delete" onClick=deleteQuery(' + id + ')>'
+			newCell.innerHTML = '<input class="btn btn-danger" type="button" value="Delete" onClick=deleteQuery(' + id + ')> <input class="btn btn-secondary" type="button" value="Archive" onClick=archiveQuery(' + id + ')>'
+			
+		}
+	}
+	
+	if(archTblBodyObj != undefined) {
+		for (var i=0; i<archTblBodyObj.rows.length; i++) {
+			var newCell = archTblBodyObj.rows[i].insertCell(-1);
+			var id = parseInt(archTblBodyObj.rows[i].childNodes[1].textContent);
+			newCell.innerHTML = '<input class="btn btn-success" type="button" value="Unarchive" onClick=unarchiveQuery(' + id + ')>'
+			
 		}
 	}
 	
@@ -102,18 +204,18 @@
 		var where = document.getElementById("where").value;
 		var order = document.getElementById("order").value;
 
-		if(fields == "" || table =="" || where =="") {
-			alert("Populate all mandatory fields");
-		} else {
-			var query = "SELECT " + fields + " FROM " + table + " WHERE " + where;
+		if(fields != "" && table !="") {
+			var query = "SELECT " + fields + " FROM " + table;
 
+			if(where != "") {
+				query += " WHERE " + where;
+			}
+			
 			if(order != "") {
 				query += " ORDER BY " + order;
 			}
 			addQuery(query);
-		}
-		
-		
+		}	
 	}
 	
 	function addQuery(q) {
@@ -121,8 +223,23 @@
 	}
 	
 	function deleteQuery(id) {
-		console.log(id);
 		#server(Project.Controller.deleteQuery(id))#;
+		location.reload();
+	}
+	
+	function archiveQuery(id) {
+		toggleArchiveStatus(id, true);
+	}
+	
+	function unarchiveQuery(id) {
+		toggleArchiveStatus(id, false);
+		hideMain();
+	}
+	
+	function toggleArchiveStatus(id, status) {
+		console.log(id);
+		console.log(status);
+		#server(Project.Controller.toggleArchiveStatus(id, status))#;
 		location.reload();
 	}
 	
@@ -133,6 +250,43 @@
 		#server(Project.Controller.updateQuery(id, text))#;
 		location.reload();
 	}
-		
-</script>	
+	
+	function hideMain() {
+		var main = document.getElementById("main");
+		var archive = document.getElementById("archive");
+		main.style.display = "none";
+		document.getElementsByClassName("mainLink")[0].classList.remove("active");
+		archive.style.display = "unset";
+		document.getElementsByClassName("archiveLink")[0].classList.add("active");
+	}
+	
+	function hideArchive() {
+		var main = document.getElementById("main");
+		var archive = document.getElementById("archive");
+		main.style.display = "unset";
+		document.getElementsByClassName("mainLink")[0].classList.add("active");
+		archive.style.display = "none";
+		document.getElementsByClassName("archiveLink")[0].classList.remove("active");
+	}
+	
+	window.alert = function() {};
+	
+	//Bootstrap validation
+	(function() {
+  		'use strict';
+  		window.addEventListener('load', function() {
+    		var forms = document.getElementsByClassName('needs-validation');
+        	var validation = Array.prototype.filter.call(forms, function(form) {
+        		form.addEventListener('submit', function(event) {
+        			if (form.checkValidity() === false) {
+          				event.preventDefault();
+          				event.stopPropagation();
+        			}
+        		form.classList.add('was-validated');
+      		}, false);
+    	});
+  	}, false);
+})();
+</script>
+</body>	
 </html>
