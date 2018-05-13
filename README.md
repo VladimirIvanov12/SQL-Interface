@@ -2,8 +2,8 @@
 
 Simple project that allows to manipulate with SQL queries stored in the database via web interface.
 
-## Functionality:
-#### Main tab: 
+## Functionality
+#### Main tab
 - Allows to add querises to database. Query must have SELECT and FROM statements, FROM and ORDER BY are optional
 - Shows all queries in database that are not marked as archived
 - Allows to edit existing queries
